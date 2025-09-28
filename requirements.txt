@@ -1,12 +1,29 @@
+# Webアプリ
+streamlit==1.32.0
+
+# LangChain 本体と関連パッケージ（安定版）
 langchain==0.1.16
 langchain-openai==0.1.3
 langchain-community==0.0.24
+
+# OpenAI SDK（LangChainと互換性のある安定版）
 openai==1.35.13
+
+# ベクトルDB
 faiss-cpu==1.7.4
+
+# PDF処理（pypdf 推奨）
 pypdf==4.2.0
+
+# Tokenizer
 tiktoken==0.7.0
-streamlit==1.32.0
+
+# 数式評価（LLMMathChainが内部で利用）
+numexpr==2.10.1
+
+# 環境変数管理
 python-dotenv==1.0.1
+
+# データ処理
 pandas==2.2.2
 numpy==1.26.4
-numexpr==2.10.1
