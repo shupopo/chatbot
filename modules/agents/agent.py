@@ -1,6 +1,6 @@
 from typing import Dict, Any
 from langchain.agents import AgentType, initialize_agent
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from .tools import ToolManager
 import config

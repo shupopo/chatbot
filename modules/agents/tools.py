@@ -1,6 +1,6 @@
 from langchain.tools import Tool
 from langchain.chains import LLMMathChain
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 import config
 import re
 

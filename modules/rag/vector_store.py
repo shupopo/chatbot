@@ -1,8 +1,8 @@
 import os
 import pickle
 from typing import List, Tuple, Optional
-from langchain.vectorstores import FAISS
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
 from langchain.docstore.document import Document
 import config
 
@@ -73,8 +73,11 @@ class VectorStore:
     def load_vector_store(self, path: str = config.VECTOR_STORE_PATH) -> bool:
         """保存されたベクトルストアを読み込み"""
         try:
-            if os.path.exists(path):
-                self.vector_store = FAISS.load_local(path, self.embeddings)
+            # ディレクトリが存在しない場合は作成
+            os.makedirs(path, exist_ok=True)
+
+            if os.path.exists(f"{path}/index.faiss"):
+                self.vector_store = FAISS.load_local(path, self.embeddings, allow_dangerous_deserialization=True)
 
                 # 文書メタデータを読み込み
                 documents_path = f"{path}/documents.pkl"
@@ -85,7 +88,7 @@ class VectorStore:
                 print(f"ベクトルストアを {path} から読み込みました")
                 return True
             else:
-                print(f"ベクトルストアが見つかりません: {path}")
+                print(f"ベクトルストアファイルが見つかりません。新しく作成されます。")
                 return False
         except Exception as e:
             print(f"ベクトルストア読み込み中にエラーが発生しました: {e}")
