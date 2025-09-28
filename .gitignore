@@ -31,7 +31,6 @@ env/
 # Data files
 data/
 *.pdf
-*.txt
 *.csv
 
 # Vector store
