@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.docstore.document import Document
 from .vector_store import VectorStore
