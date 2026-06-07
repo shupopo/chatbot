@@ -1,11 +1,16 @@
 import streamlit as st
 import os
 from datetime import datetime
-import config
+
+APP_TITLE = "LangChain RAGチャットボット"
+APP_DESCRIPTION = """
+LangChain + Supabase (pgvector) を使用したRAGチャットボットです。
+PDFをアップロードすると、文書の内容に基づいて質問に回答します。
+"""
 
 # ページ設定
 st.set_page_config(
-    page_title=config.APP_TITLE,
+    page_title=APP_TITLE,
     page_icon="🤖",
     layout="wide"
 )
@@ -69,7 +74,7 @@ def initialize_session_state():
     if 'uploaded_files_status' not in st.session_state:
         st.session_state.uploaded_files_status = ""
 
-def validate_required_settings():
+def validate_required_settings(config):
     """必須設定を確認"""
     missing = []
     if not config.OPENAI_API_KEY:
@@ -138,11 +143,16 @@ def display_chat_message(message, role, mode=None, sources=None, tools_used=None
 def main():
     """メイン関数"""
     # ヘッダーを先に描画して、初期化待ちでもスケルトン表示のままにしない
-    st.title(config.APP_TITLE)
-    st.markdown(config.APP_DESCRIPTION)
+    st.title(APP_TITLE)
+    st.markdown(APP_DESCRIPTION)
+    st.caption("起動チェック: app.py を読み込みました。")
+
+    print("Importing config...", flush=True)
+    import config
+    print("Config imported.", flush=True)
 
     print("Validating required settings...", flush=True)
-    validate_required_settings()
+    validate_required_settings(config)
     print("Required settings validated.", flush=True)
 
     initialize_session_state()
