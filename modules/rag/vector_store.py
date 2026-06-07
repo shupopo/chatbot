@@ -1,13 +1,25 @@
 from typing import List, Tuple
+import requests
 from langchain_openai import OpenAIEmbeddings
 from langchain.docstore.document import Document
-from supabase import create_client
 import config
 
 class VectorStore:
     def __init__(self):
         self.embeddings = OpenAIEmbeddings(openai_api_key=config.OPENAI_API_KEY)
-        self.supabase = create_client(config.SUPABASE_URL, config.SUPABASE_SERVICE_KEY)
+        self.base_url = f"{config.SUPABASE_URL}/rest/v1"
+        self.headers = {
+            "apikey": config.SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {config.SUPABASE_SERVICE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+        }
+
+    def _request(self, method, path, **kwargs):
+        url = f"{self.base_url}{path}"
+        resp = requests.request(method, url, headers=self.headers, **kwargs)
+        resp.raise_for_status()
+        return resp
 
     def create_vector_store(self, documents: List[Document]) -> None:
         if not documents:
@@ -25,7 +37,7 @@ class VectorStore:
                 "embedding": embedding,
             })
 
-        self.supabase.table("documents").insert(rows).execute()
+        self._request("POST", "/documents", json=rows)
 
     def similarity_search(self, query: str, k: int = config.TOP_K_DOCUMENTS) -> List[Document]:
         results = self._search(query, k)
@@ -43,25 +55,38 @@ class VectorStore:
 
     def _search(self, query: str, k: int) -> list:
         query_embedding = self.embeddings.embed_query(query)
-        result = self.supabase.rpc("match_documents", {
+        resp = self._request("POST", "/rpc/match_documents", json={
             "query_embedding": query_embedding,
             "match_count": k,
-        }).execute()
-        return result.data or []
+        })
+        return resp.json()
 
     def get_document_count(self) -> int:
         try:
-            result = self.supabase.table("documents").select("id", count="exact").execute()
-            return result.count or 0
+            headers = {**self.headers, "Prefer": "count=exact"}
+            resp = requests.get(
+                f"{self.base_url}/documents?select=id",
+                headers=headers,
+            )
+            resp.raise_for_status()
+            content_range = resp.headers.get("content-range", "")
+            if "/" in content_range:
+                total = content_range.split("/")[1]
+                return int(total) if total != "*" else 0
+            return len(resp.json())
         except Exception as e:
             print(f"ドキュメント数取得中にエラーが発生しました: {e}")
             return 0
 
     def get_registered_files(self) -> List[str]:
         try:
-            result = self.supabase.table("documents").select("metadata").execute()
+            resp = requests.get(
+                f"{self.base_url}/documents?select=metadata",
+                headers=self.headers,
+            )
+            resp.raise_for_status()
             sources = set()
-            for row in result.data or []:
+            for row in resp.json():
                 name = row.get("metadata", {}).get("source", "")
                 if name:
                     sources.add(name.replace("temp_", ""))
@@ -72,6 +97,9 @@ class VectorStore:
 
     def clear_vector_store(self) -> None:
         try:
-            self.supabase.table("documents").delete().neq("id", 0).execute()
+            requests.delete(
+                f"{self.base_url}/documents?id=neq.0",
+                headers=self.headers,
+            ).raise_for_status()
         except Exception as e:
             print(f"ベクトルストアクリア中にエラーが発生しました: {e}")
