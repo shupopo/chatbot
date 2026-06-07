@@ -4,6 +4,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.docstore.document import Document
 import config
 
+REQUEST_TIMEOUT_SECONDS = 10
+
 class VectorStore:
     def __init__(self):
         self.embeddings = OpenAIEmbeddings(openai_api_key=config.OPENAI_API_KEY)
@@ -17,6 +19,7 @@ class VectorStore:
 
     def _request(self, method, path, **kwargs):
         url = f"{self.base_url}{path}"
+        kwargs.setdefault("timeout", REQUEST_TIMEOUT_SECONDS)
         resp = requests.request(method, url, headers=self.headers, **kwargs)
         resp.raise_for_status()
         return resp
@@ -67,6 +70,7 @@ class VectorStore:
             resp = requests.get(
                 f"{self.base_url}/documents?select=id",
                 headers=headers,
+                timeout=REQUEST_TIMEOUT_SECONDS,
             )
             resp.raise_for_status()
             content_range = resp.headers.get("content-range", "")
@@ -83,6 +87,7 @@ class VectorStore:
             resp = requests.get(
                 f"{self.base_url}/documents?select=metadata",
                 headers=self.headers,
+                timeout=REQUEST_TIMEOUT_SECONDS,
             )
             resp.raise_for_status()
             sources = set()
@@ -100,6 +105,7 @@ class VectorStore:
             requests.delete(
                 f"{self.base_url}/documents?id=neq.0",
                 headers=self.headers,
+                timeout=REQUEST_TIMEOUT_SECONDS,
             ).raise_for_status()
         except Exception as e:
             print(f"ベクトルストアクリア中にエラーが発生しました: {e}")

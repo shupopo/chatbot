@@ -52,7 +52,12 @@ st.markdown("""
 def initialize_session_state():
     """セッション状態を初期化"""
     if 'chatbot' not in st.session_state:
-        st.session_state.chatbot = ChatBot()
+        try:
+            st.session_state.chatbot = ChatBot()
+        except Exception as e:
+            st.error("チャットボットの初期化に失敗しました。")
+            st.exception(e)
+            st.stop()
 
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
