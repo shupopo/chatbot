@@ -20,29 +20,31 @@ st.markdown("""
     margin-bottom: 1rem;
     display: flex;
     flex-direction: column;
+    color: #1a1a1a;
 }
 .user-message {
-    background-color: #e3f2fd;
+    background-color: #d0e8ff;
     border-left: 4px solid #2196f3;
 }
 .bot-message {
-    background-color: #f3e5f5;
+    background-color: #e8d5f5;
     border-left: 4px solid #9c27b0;
 }
 .rag-mode {
-    background-color: #e8f5e8;
+    background-color: #c8e6c9;
     border-left: 4px solid #4caf50;
 }
 .agent-mode {
-    background-color: #fff3e0;
+    background-color: #ffe0b2;
     border-left: 4px solid #ff9800;
 }
 .source-info {
-    background-color: #f5f5f5;
+    background-color: #e0e0e0;
     padding: 0.5rem;
     border-radius: 5px;
     margin-top: 0.5rem;
     font-size: 0.9rem;
+    color: #1a1a1a;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -89,22 +91,23 @@ def display_chat_message(message, role, mode=None, sources=None, tools_used=None
 
         # ソース情報を表示（RAGモードの場合）
         if sources and len(sources) > 0:
-            source_text = "**📄 参考文書:**\n"
+            source_items = ""
             for i, source in enumerate(sources, 1):
-                source_text += f"{i}. {source['source']} - ページ{source['page']}\n"
+                source_name = source['source'].replace('temp_', '')
+                source_items += f"<li>{source_name}（ページ {source['page']}）</li>"
 
             st.markdown(f"""
             <div class="source-info">
-                {source_text}
+                <strong>📄 参考文書:</strong>
+                <ul style="margin: 0.3rem 0 0 0; padding-left: 1.2rem;">{source_items}</ul>
             </div>
             """, unsafe_allow_html=True)
 
         # 使用ツール情報を表示（Agentsモードの場合）
         if tools_used and len(tools_used) > 0:
-            tools_text = f"**🔧 使用ツール:** {', '.join(tools_used)}"
             st.markdown(f"""
             <div class="source-info">
-                {tools_text}
+                <strong>🔧 使用ツール:</strong> {', '.join(tools_used)}
             </div>
             """, unsafe_allow_html=True)
 
@@ -127,7 +130,14 @@ def main():
 
         # システム状態表示
         status = st.session_state.chatbot.get_system_status()
-        st.metric("📄 登録文書数", status["document_count"])
+        st.metric("📄 登録チャンク数", status["document_count"])
+
+        # 登録済み文書一覧
+        registered_files = st.session_state.chatbot.get_registered_files()
+        if registered_files:
+            with st.expander(f"📋 登録済み文書（{len(registered_files)}件）", expanded=True):
+                for f in registered_files:
+                    st.write(f"- {f}")
 
         # ファイルアップロード
         uploaded_files = st.file_uploader(

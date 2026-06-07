@@ -35,7 +35,6 @@ class RAGRetriever:
         if all_documents:
             try:
                 self.vector_store.create_vector_store(all_documents)
-                self.vector_store.save_vector_store()
                 return f"成功: {len(processed_files)}個のファイルを処理し、{len(all_documents)}個のチャンクを作成しました。\\n処理されたファイル: {', '.join(processed_files)}"
             except Exception as e:
                 return f"ベクトルストア作成中にエラーが発生しました: {str(e)}"
@@ -43,13 +42,13 @@ class RAGRetriever:
             return "処理可能なコンテンツが見つかりませんでした。"
 
     def load_existing_documents(self) -> bool:
-        """既存のベクトルストアを読み込み"""
-        return self.vector_store.load_vector_store()
+        """Supabaseに既存データがあるか確認"""
+        return self.vector_store.get_document_count() > 0
 
     def retrieve_and_generate(self, query: str) -> Dict[str, Any]:
         """RAGを使用して質問に回答"""
-        # ベクトルストアが空の場合
-        if self.vector_store.vector_store is None:
+        # ドキュメントが登録されていない場合
+        if self.vector_store.get_document_count() == 0:
             return {
                 "answer": "資料に該当箇所が見当たりません。まず文書をアップロードしてください。",
                 "sources": [],

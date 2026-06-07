@@ -80,10 +80,13 @@ class ChatBot:
         """会話履歴をクリア"""
         self.agent_manager.clear_memory()
 
+    def get_registered_files(self):
+        return self.rag_retriever.vector_store.get_registered_files()
+
     def get_system_status(self) -> Dict[str, Any]:
         """システムの状態を取得"""
         return {
             "document_count": self.get_document_count(),
-            "rag_available": self.rag_retriever.vector_store.vector_store is not None,
+            "rag_available": self.get_document_count() > 0,
             "agents_available": len(self.agent_manager.tools) > 0
         }
