@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 from datetime import datetime
-from chatbot import ChatBot
 import config
 
 # ページ設定
@@ -53,8 +52,13 @@ def initialize_session_state():
     """セッション状態を初期化"""
     if 'chatbot' not in st.session_state:
         try:
+            print("Starting ChatBot initialization...", flush=True)
+            st.info("チャットボットを初期化中です...")
+            from chatbot import ChatBot
             st.session_state.chatbot = ChatBot()
+            print("ChatBot initialization completed.", flush=True)
         except Exception as e:
+            print(f"ChatBot initialization failed: {e}", flush=True)
             st.error("チャットボットの初期化に失敗しました。")
             st.exception(e)
             st.stop()
@@ -133,12 +137,15 @@ def display_chat_message(message, role, mode=None, sources=None, tools_used=None
 
 def main():
     """メイン関数"""
-    validate_required_settings()
-    initialize_session_state()
-
-    # ヘッダー
+    # ヘッダーを先に描画して、初期化待ちでもスケルトン表示のままにしない
     st.title(config.APP_TITLE)
     st.markdown(config.APP_DESCRIPTION)
+
+    print("Validating required settings...", flush=True)
+    validate_required_settings()
+    print("Required settings validated.", flush=True)
+
+    initialize_session_state()
 
     # サイドバー
     with st.sidebar:

@@ -5,11 +5,17 @@ import config
 
 class ChatBot:
     def __init__(self):
+        print("Initializing RAG retriever...", flush=True)
         self.rag_retriever = RAGRetriever()
-        self.agent_manager = AgentManager()
+        print("RAG retriever initialized.", flush=True)
 
-        # 既存の文書を読み込み
+        print("Initializing agent manager...", flush=True)
+        self.agent_manager = AgentManager()
+        print("Agent manager initialized.", flush=True)
+
+        print("Checking existing documents...", flush=True)
         self.rag_retriever.load_existing_documents()
+        print("Existing documents check completed.", flush=True)
 
     def process_query(self, query: str) -> Dict[str, Any]:
         """

@@ -20,8 +20,10 @@ class VectorStore:
     def _request(self, method, path, **kwargs):
         url = f"{self.base_url}{path}"
         kwargs.setdefault("timeout", REQUEST_TIMEOUT_SECONDS)
+        print(f"Supabase request: {method} {path}", flush=True)
         resp = requests.request(method, url, headers=self.headers, **kwargs)
         resp.raise_for_status()
+        print(f"Supabase response: {method} {path} {resp.status_code}", flush=True)
         return resp
 
     def create_vector_store(self, documents: List[Document]) -> None:
@@ -66,6 +68,7 @@ class VectorStore:
 
     def get_document_count(self) -> int:
         try:
+            print("Fetching document count from Supabase...", flush=True)
             headers = {**self.headers, "Prefer": "count=exact"}
             resp = requests.get(
                 f"{self.base_url}/documents?select=id",
@@ -76,14 +79,19 @@ class VectorStore:
             content_range = resp.headers.get("content-range", "")
             if "/" in content_range:
                 total = content_range.split("/")[1]
-                return int(total) if total != "*" else 0
-            return len(resp.json())
+                count = int(total) if total != "*" else 0
+                print(f"Document count fetched: {count}", flush=True)
+                return count
+            count = len(resp.json())
+            print(f"Document count fetched: {count}", flush=True)
+            return count
         except Exception as e:
-            print(f"ドキュメント数取得中にエラーが発生しました: {e}")
+            print(f"ドキュメント数取得中にエラーが発生しました: {e}", flush=True)
             return 0
 
     def get_registered_files(self) -> List[str]:
         try:
+            print("Fetching registered files from Supabase...", flush=True)
             resp = requests.get(
                 f"{self.base_url}/documents?select=metadata",
                 headers=self.headers,
@@ -95,9 +103,11 @@ class VectorStore:
                 name = row.get("metadata", {}).get("source", "")
                 if name:
                     sources.add(name.replace("temp_", ""))
-            return sorted(sources)
+            files = sorted(sources)
+            print(f"Registered files fetched: {len(files)}", flush=True)
+            return files
         except Exception as e:
-            print(f"ファイル一覧取得中にエラーが発生しました: {e}")
+            print(f"ファイル一覧取得中にエラーが発生しました: {e}", flush=True)
             return []
 
     def clear_vector_store(self) -> None:
@@ -108,4 +118,4 @@ class VectorStore:
                 timeout=REQUEST_TIMEOUT_SECONDS,
             ).raise_for_status()
         except Exception as e:
-            print(f"ベクトルストアクリア中にエラーが発生しました: {e}")
+            print(f"ベクトルストアクリア中にエラーが発生しました: {e}", flush=True)
