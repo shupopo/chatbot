@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(git -C /Users/hiroshimashuuhei/dev/chatbot add modules/rag/vector_store.py requirements.txt)",
+      "Bash(git -C /Users/hiroshimashuuhei/dev/chatbot commit -m ' *)"
+    ]
+  }
+}

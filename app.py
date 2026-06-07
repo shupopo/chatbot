@@ -60,6 +60,21 @@ def initialize_session_state():
     if 'uploaded_files_status' not in st.session_state:
         st.session_state.uploaded_files_status = ""
 
+def validate_required_settings():
+    """必須設定を確認"""
+    missing = []
+    if not config.OPENAI_API_KEY:
+        missing.append("OPENAI_API_KEY")
+    if not config.SUPABASE_URL:
+        missing.append("SUPABASE_URL")
+    if not config.SUPABASE_SERVICE_KEY:
+        missing.append("SUPABASE_SERVICE_KEY")
+
+    if missing:
+        st.error(f"必須設定が不足しています: {', '.join(missing)}")
+        st.info("Streamlit Cloud の App settings > Secrets に設定してください。")
+        st.stop()
+
 def display_chat_message(message, role, mode=None, sources=None, tools_used=None):
     """チャットメッセージを表示"""
     if role == "user":
@@ -113,6 +128,7 @@ def display_chat_message(message, role, mode=None, sources=None, tools_used=None
 
 def main():
     """メイン関数"""
+    validate_required_settings()
     initialize_session_state()
 
     # ヘッダー
@@ -122,11 +138,6 @@ def main():
     # サイドバー
     with st.sidebar:
         st.header("📁 文書管理")
-
-        # OpenAI APIキーの確認
-        if not config.OPENAI_API_KEY:
-            st.error("⚠️ OpenAI APIキーが設定されていません。.envファイルにOPENAI_API_KEYを設定してください。")
-            st.stop()
 
         # システム状態表示
         status = st.session_state.chatbot.get_system_status()
